@@ -1,8 +1,10 @@
 #include "gui.h"
-#include "core/calculator.h"
+
+#include <stdio.h>
 
 GUI::GUI() {
     app = gtk_application_new("org.example.MyCalculator", G_APPLICATION_FLAGS_NONE);
+    calculator = Calculator();
 }
 
 GUI::~GUI() {
@@ -16,6 +18,14 @@ int GUI::run(int argc, char *argv[]) {
 
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     return status;
+}
+
+void GUI::setupCssProvider(const gchar *path) {
+    GtkCssProvider *cssProvider = gtk_css_provider_new();
+    gtk_css_provider_load_from_path(cssProvider, path);
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
+                                               GTK_STYLE_PROVIDER(cssProvider),
+                                               GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
 // Function to add a CSS class to a widget
@@ -35,60 +45,77 @@ void GUI::onActivate(GtkApplication *app) {
     gtk_window_set_title(GTK_WINDOW(window), "Calculator");
     gtk_window_maximize(GTK_WINDOW(window));
 
-    GtkCssProvider *cssProvider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(cssProvider, "src/gui/css/calculator_style.css");
-
-    gtk_style_context_add_provider_for_display(gdk_display_get_default(),
-                                               GTK_STYLE_PROVIDER(cssProvider),
-                                               GTK_STYLE_PROVIDER_PRIORITY_USER);
+    setupCssProvider("src/gui/css/style.css");
 
     grid = gtk_grid_new();
     gtk_window_set_child(GTK_WINDOW(window), grid);
 
-    // Create display label
     display_label = gtk_label_new("0");
-    // Set display label properties (e.g., expand, fill, padding)
-    // and add to grid at position (0,0) spanning 4 columns and 1 row
-    gtk_grid_attach(GTK_GRID(grid), display_label, 0, 0, 4, 1);
+    gtk_widget_set_name(display_label, "display-label");
+    gtk_widget_set_hexpand(display_label, TRUE);
+    // gtk_widget_set_vexpand(display_label, TRUE);
+    gtk_grid_attach(GTK_GRID(grid), display_label, 0, 0, 5, 1);
 
-    // Define button labels in the order they should appear on the grid
-    const char* button_labels[] = {
+    static const std::map<ButtonType, std::string> BUTTON_CLASS_MAP = {
+        {GUI::ButtonType::DELETE, "button-delete"},
+        {GUI::ButtonType::OPERATION, "button-operation"},
+        {GUI::ButtonType::EQUAL, "button-equal"},
+        {GUI::ButtonType::NUMBER, "button-number"}
+    };
+
+    const char* button_labels[25] = {
         "⌫", "(", ")", "mod", "π",
         "7", "8", "9", "÷", "√",
         "4", "5", "6", "x", "x²",
-        "1", "2", "3", "-", "^", 
+        "1", "2", "3", "-", "^",
         "0", ".", "%", "+", "=",
     };
-    
-    // Define classes for buttons
-    const char* button_classes[25] = {
-        "button-delete", "button-operation", "button-operation", "button-operation", "button-operation",
-        "button", "button", "button", "button-operation", "button-operation",
-        "button", "button", "button", "button-operation", "button-operation",
-        "button", "button", "button", "button-operation", "button-operation",
-        "button", "button-operation", "button-operation", "button-operation", "button-equal",
+
+    static const ButtonType button_types[25] = {
+        GUI::ButtonType::DELETE, GUI::ButtonType::OPERATION,    GUI::ButtonType::OPERATION,   GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
+        GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::NUMBER,      GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
+        GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::NUMBER,      GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
+        GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::NUMBER,      GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
+        GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::OPERATION,   GUI::ButtonType::OPERATION, GUI::ButtonType::EQUAL,
     };
 
-    // Place buttons on the grid
     for (int i = 0; i < 25; ++i) {
-        GtkWidget *button = create_button(button_labels[i], button_classes[i]);
-        int row = (i / 5) + 1; // +1 to account for the display row
-        int col = i % 5;
-        int width = 1;
-        int height = 1;
-
-        gtk_grid_attach(GTK_GRID(grid), button, col, row, width, height);
+        auto type = button_types[i];
+        auto css_class = BUTTON_CLASS_MAP.at(type);
+        GtkWidget *button = create_button(button_labels[i], css_class.c_str());
+        gtk_grid_attach(GTK_GRID(grid), button, i % 5, i / 5 + 1, 1, 1);
+        // Connect each button to the callback function
+        switch(type) {
+            case GUI::ButtonType::DELETE:
+                g_signal_connect(button, "clicked", G_CALLBACK(on_delete_button_clicked), NULL);
+                break;
+            case GUI::ButtonType::OPERATION:
+                g_signal_connect(button, "clicked", G_CALLBACK(on_operation_button_clicked), NULL);
+                break;
+            case GUI::ButtonType::EQUAL:
+                g_signal_connect(button, "clicked", G_CALLBACK(on_equal_button_clicked), NULL);
+                break;
+            case GUI::ButtonType::NUMBER:
+                g_signal_connect(button, "clicked", G_CALLBACK(on_number_button_clicked), NULL);
+                break;
+        }
     }
 
     gtk_widget_show(window);
 }
 
 void GUI::on_number_button_clicked(GtkButton *button, gpointer user_data) {
-    // Implement number button clicked logic
-    // ...
+    printf("Number Button clicked\n");
 }
 
 void GUI::on_operation_button_clicked(GtkButton *button, gpointer user_data) {
-    // Implement operation button clicked logic
-    // ...
+    printf("Operation Button clicked\n");
+}
+
+void GUI::on_delete_button_clicked(GtkButton *button, gpointer user_data) {
+    printf("Delete Button clicked\n");
+}
+
+void GUI::on_equal_button_clicked(GtkButton *button, gpointer user_data) {
+    printf("Equal Button clicked\n");
 }

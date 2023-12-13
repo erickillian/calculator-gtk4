@@ -1,3 +1,11 @@
+#display-label {
+    font-size: 24px;
+    color: #FFF;
+    padding: 12px;
+    margin: 10px;
+    border-radius: 8px;
+}
+
 /* General button styling */
 button {
     font-size: 18px;
@@ -7,6 +15,14 @@ button {
     border: none;
     color: white;
     background-color: #333; /* Default dark background */
+}
+
+button:hover {
+    background-color: #444; /* Change color on hover */
+}
+
+button:active {
+    transform: scale(0.95); /* Moves the button down slightly when clicked */
 }
 
 /* Specific styles for different button types */
@@ -20,9 +36,5 @@ button {
 
 .button-equal {
     background-color: #5cb85c; /* Bootstrap 'btn-success' color */
-    /* Adjust padding or size as needed */
-}
-
-.button-zero {
     /* Adjust padding or size as needed */
 }
