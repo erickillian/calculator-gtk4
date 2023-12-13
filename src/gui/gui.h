@@ -32,6 +32,9 @@ private:
     void add_css_class(GtkWidget *widget, const gchar *class_name);
     GtkWidget* create_button(const char* label, const char* css_class);
     void onActivate(GtkApplication *app);
+    void updateDisplay(const std::string& text);
+    void clearDisplay();
+    void eraseDisplay();
     static void on_number_button_clicked(GtkButton *button, gpointer user_data);
     static void on_operation_button_clicked(GtkButton *button, gpointer user_data);
     static void on_delete_button_clicked(GtkButton *button, gpointer user_data);

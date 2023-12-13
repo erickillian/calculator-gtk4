@@ -5,6 +5,7 @@
 GUI::GUI() {
     app = gtk_application_new("org.example.MyCalculator", G_APPLICATION_FLAGS_NONE);
     calculator = Calculator();
+    current_input = "";
 }
 
 GUI::~GUI() {
@@ -43,14 +44,14 @@ GtkWidget* GUI::create_button(const char* label, const char* css_class) {
 void GUI::onActivate(GtkApplication *app) {
     window = gtk_application_window_new(app);
     gtk_window_set_title(GTK_WINDOW(window), "Calculator");
-    gtk_window_maximize(GTK_WINDOW(window));
+    // gtk_window_maximize(GTK_WINDOW(window));
 
     setupCssProvider("src/gui/css/style.css");
 
     grid = gtk_grid_new();
     gtk_window_set_child(GTK_WINDOW(window), grid);
 
-    display_label = gtk_label_new("0");
+    display_label = gtk_label_new(current_input.c_str());
     gtk_widget_set_name(display_label, "display-label");
     gtk_widget_set_hexpand(display_label, TRUE);
     // gtk_widget_set_vexpand(display_label, TRUE);
@@ -87,16 +88,16 @@ void GUI::onActivate(GtkApplication *app) {
         // Connect each button to the callback function
         switch(type) {
             case GUI::ButtonType::DELETE:
-                g_signal_connect(button, "clicked", G_CALLBACK(on_delete_button_clicked), NULL);
+                g_signal_connect(button, "clicked", G_CALLBACK(on_delete_button_clicked), this);
                 break;
             case GUI::ButtonType::OPERATION:
-                g_signal_connect(button, "clicked", G_CALLBACK(on_operation_button_clicked), NULL);
+                g_signal_connect(button, "clicked", G_CALLBACK(on_operation_button_clicked), this);
                 break;
             case GUI::ButtonType::EQUAL:
-                g_signal_connect(button, "clicked", G_CALLBACK(on_equal_button_clicked), NULL);
+                g_signal_connect(button, "clicked", G_CALLBACK(on_equal_button_clicked), this);
                 break;
             case GUI::ButtonType::NUMBER:
-                g_signal_connect(button, "clicked", G_CALLBACK(on_number_button_clicked), NULL);
+                g_signal_connect(button, "clicked", G_CALLBACK(on_number_button_clicked), this);
                 break;
         }
     }
@@ -104,18 +105,63 @@ void GUI::onActivate(GtkApplication *app) {
     gtk_widget_show(window);
 }
 
+void GUI::updateDisplay(const std::string& text) {
+    current_input += text;
+    gtk_label_set_text(GTK_LABEL(display_label), current_input.c_str());
+}
+
+void GUI::clearDisplay() {
+    current_input.clear();
+    gtk_label_set_text(GTK_LABEL(display_label), current_input.c_str());
+}
+
+void GUI::eraseDisplay() {
+    if (current_input.empty()) {
+        return;
+    }
+    current_input.erase(current_input.size() - 1);
+    gtk_label_set_text(GTK_LABEL(display_label), current_input.c_str());
+}
+
 void GUI::on_number_button_clicked(GtkButton *button, gpointer user_data) {
-    printf("Number Button clicked\n");
+    GUI* gui = static_cast<GUI*>(user_data);
+    // Retrieve the label (number) of the button that was clicked
+    const char *number = gtk_button_get_label(button);
+    printf("Number Button clicked \"%s\"\n", number);
+    gui->updateDisplay(number);
 }
 
 void GUI::on_operation_button_clicked(GtkButton *button, gpointer user_data) {
-    printf("Operation Button clicked\n");
+    GUI* gui = static_cast<GUI*>(user_data);
+    // Retrieve the label (number) of the button that was clicked
+    const char *number = gtk_button_get_label(button);
+    if (strcmp(number, "mod") == 0) {
+        number = "%";
+    } else if (strcmp(number, "÷") == 0) {
+        number = "/";
+    } else if (strcmp(number, "x") == 0) {
+        number = "*";
+    } else if (strcmp(number, "x²") == 0) {
+        number = "^2";
+    } else if (strcmp(number, "^") == 0) {
+        number = "^";
+    } else if (strcmp(number, "√") == 0) {
+        number = "^(1/2)";
+    }
+
+
+    printf("Operation Button clicked \"%s\"\n", number);
+    gui->updateDisplay(number);
 }
 
 void GUI::on_delete_button_clicked(GtkButton *button, gpointer user_data) {
     printf("Delete Button clicked\n");
+    GUI* gui = static_cast<GUI*>(user_data);
+    gui->eraseDisplay();
 }
 
 void GUI::on_equal_button_clicked(GtkButton *button, gpointer user_data) {
     printf("Equal Button clicked\n");
+    GUI* gui = static_cast<GUI*>(user_data);
+    gui->clearDisplay();
 }
