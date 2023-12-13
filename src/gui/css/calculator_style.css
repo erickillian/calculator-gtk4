@@ -1,0 +1,28 @@
+/* General button styling */
+button {
+    font-size: 18px;
+    margin: 2px;
+    padding: 20px 20px;
+    border-radius: 5px;
+    border: none;
+    color: white;
+    background-color: #333; /* Default dark background */
+}
+
+/* Specific styles for different button types */
+.button-delete {
+    background-color: #d9534f; /* Bootstrap 'btn-danger' color */
+}
+
+.button-operation {
+    background-color: #555; /* Slightly lighter than default */
+}
+
+.button-equal {
+    background-color: #5cb85c; /* Bootstrap 'btn-success' color */
+    /* Adjust padding or size as needed */
+}
+
+.button-zero {
+    /* Adjust padding or size as needed */
+}
