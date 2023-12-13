@@ -38,3 +38,8 @@ button:active {
     background-color: #5cb85c; /* Bootstrap 'btn-success' color */
     /* Adjust padding or size as needed */
 }
+
+.button-clear {
+    background-color: #5c65b8; /* Bootstrap 'btn-success' color */
+    /* Adjust padding or size as needed */
+}

@@ -4,7 +4,7 @@
 
 GUI::GUI() {
     app = gtk_application_new("org.example.MyCalculator", G_APPLICATION_FLAGS_NONE);
-    calculator = Calculator();
+    expression_parser = ExpressionParser();
     current_input = "";
 }
 
@@ -61,19 +61,20 @@ void GUI::onActivate(GtkApplication *app) {
         {GUI::ButtonType::DELETE, "button-delete"},
         {GUI::ButtonType::OPERATION, "button-operation"},
         {GUI::ButtonType::EQUAL, "button-equal"},
-        {GUI::ButtonType::NUMBER, "button-number"}
+        {GUI::ButtonType::NUMBER, "button-number"},
+        {GUI::ButtonType::CLEAR, "button-clear"}
     };
 
     const char* button_labels[25] = {
-        "⌫", "(", ")", "mod", "π",
+        "⌫", "(", ")", "Clear", "Clear",
         "7", "8", "9", "÷", "√",
         "4", "5", "6", "x", "x²",
         "1", "2", "3", "-", "^",
-        "0", ".", "%", "+", "=",
+        "0", ".", "mod", "+", "=",
     };
 
     static const ButtonType button_types[25] = {
-        GUI::ButtonType::DELETE, GUI::ButtonType::OPERATION,    GUI::ButtonType::OPERATION,   GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
+        GUI::ButtonType::DELETE, GUI::ButtonType::OPERATION,    GUI::ButtonType::OPERATION,   GUI::ButtonType::CLEAR, GUI::ButtonType::CLEAR,
         GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::NUMBER,      GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
         GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::NUMBER,      GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
         GUI::ButtonType::NUMBER, GUI::ButtonType::NUMBER,       GUI::ButtonType::NUMBER,      GUI::ButtonType::OPERATION, GUI::ButtonType::OPERATION,
@@ -99,6 +100,9 @@ void GUI::onActivate(GtkApplication *app) {
             case GUI::ButtonType::NUMBER:
                 g_signal_connect(button, "clicked", G_CALLBACK(on_number_button_clicked), this);
                 break;
+            case GUI::ButtonType::CLEAR:
+                g_signal_connect(button, "clicked", G_CALLBACK(on_clear_button_clicked), this);
+                break;
         }
     }
 
@@ -123,11 +127,14 @@ void GUI::eraseDisplay() {
     gtk_label_set_text(GTK_LABEL(display_label), current_input.c_str());
 }
 
+std::string GUI::getDisplay() {
+    return current_input;
+}
+
 void GUI::on_number_button_clicked(GtkButton *button, gpointer user_data) {
     GUI* gui = static_cast<GUI*>(user_data);
     // Retrieve the label (number) of the button that was clicked
     const char *number = gtk_button_get_label(button);
-    printf("Number Button clicked \"%s\"\n", number);
     gui->updateDisplay(number);
 }
 
@@ -148,20 +155,22 @@ void GUI::on_operation_button_clicked(GtkButton *button, gpointer user_data) {
     } else if (strcmp(number, "√") == 0) {
         number = "^(1/2)";
     }
-
-
-    printf("Operation Button clicked \"%s\"\n", number);
     gui->updateDisplay(number);
 }
 
 void GUI::on_delete_button_clicked(GtkButton *button, gpointer user_data) {
-    printf("Delete Button clicked\n");
     GUI* gui = static_cast<GUI*>(user_data);
     gui->eraseDisplay();
 }
 
 void GUI::on_equal_button_clicked(GtkButton *button, gpointer user_data) {
-    printf("Equal Button clicked\n");
+    GUI* gui = static_cast<GUI*>(user_data);
+    std::string expression = gui->getDisplay();    
+    gui->clearDisplay();
+    gui->updateDisplay(std::to_string(gui->expression_parser.parseAndCalculate(expression)));
+}
+
+void GUI::on_clear_button_clicked(GtkButton *button, gpointer user_data) {
     GUI* gui = static_cast<GUI*>(user_data);
     gui->clearDisplay();
 }
